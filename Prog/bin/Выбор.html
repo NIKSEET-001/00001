@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Начало работы</title>
+    <style>
+        :root {
+            --primary: #4a6cf7;
+            --primary-dark: #3651d4;
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #1a1a1a;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --radius: 16px;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.6;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app-wrapper {
+            width: 100%;
+            max-width: 600px;
+            min-height: 100vh;
+            background-color: var(--bg);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Шапка */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 20px 20px 16px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .page-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.35);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .dot.active {
+            background-color: white;
+            width: 18px;
+            border-radius: 3px;
+        }
+
+        .dot.completed {
+            background-color: rgba(255, 255, 255, 0.75);
+        }
+
+        /* Контент страниц */
+        .pages-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            padding: 24px 20px 40px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Карточки */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 22px 18px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            font-size: 1.15rem;
+            margin-bottom: 14px;
+            color: var(--primary-dark);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card h2 .emoji {
+            font-size: 1.4rem;
+        }
+
+        .card p {
+            color: var(--text);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .welcome-text {
+            font-size: 1rem;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        .welcome-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        /* Кнопки выбора типа работы */
+        .work-options {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .work-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 18px;
+            background-color: #ffffff;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .work-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: var(--primary);
+            transform: scaleY(0);
+            transition: transform 0.25s ease;
+        }
+
+        .work-btn:hover {
+            border-color: var(--primary);
+            box-shadow: 0 6px 20px rgba(74, 108, 247, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .work-btn:hover::before {
+            transform: scaleY(1);
+        }
+
+        .work-btn:active {
+            transform: scale(0.98);
+        }
+
+        .work-btn .work-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #eef2ff;
+            border-radius: 12px;
+        }
+
+        .work-btn .work-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .work-btn .work-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .work-btn .work-desc {
+            font-size: 0.82rem;
+            font-weight: 400;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .work-btn .work-arrow {
+            font-size: 1.4rem;
+            color: var(--primary);
+            flex-shrink: 0;
+            transition: transform 0.25s ease;
+        }
+
+        .work-btn:hover .work-arrow {
+            transform: translateX(4px);
+        }
+
+        /* Навигация */
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 16px 20px 24px;
+            background-color: var(--bg);
+            border-top: 1px solid var(--border);
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        .btn-secondary { background-color: #e5e7eb; color: #374151; }
+        .btn-secondary:hover { background-color: #d1d5db; }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .page-counter {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 4px;
+            padding-bottom: 8px;
+        }
+
+        @media (max-width: 380px) {
+            .card { padding: 16px 14px; }
+            .header h1 { font-size: 1rem; }
+            .work-btn { padding: 16px 14px; gap: 12px; }
+            .work-btn .work-icon { width: 44px; height: 44px; font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+    <!-- Шапка -->
+    <div class="header">
+        <h1>🚀 Начало работы</h1>
+        <div class="page-indicator" id="page-indicator"></div>
+    </div>
+
+    <!-- Контейнер страниц -->
+    <div class="pages-container">
+
+        <!-- СТРАНИЦА 1: Приветствие -->
+        <div class="page active" id="page-0">
+            <div class="card" style="text-align: center;">
+                <div class="welcome-icon">👋</div>
+                <h2 style="justify-content: center;">Добро пожаловать!</h2>
+                <p class="welcome-text">
+                    Вы успешно завершили обучение и готовы приступить к работе.<br><br>
+                    Остался последний шаг — выбрать <strong>формат работы</strong>, который вы будете выполнять.<br><br>
+                    Внимательно прочитайте описание и нажмите на нужную кнопку.
+                </p>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦА 2: Выбор типа работы -->
+        <div class="page" id="page-1">
+            <div class="card">
+                <h2><span class="emoji">⚙️</span> Тип работы</h2>
+                <p>Выбери нужный формат работы:</p>
+
+                <div class="work-options">
+                    <!-- Кнопка: Расклейка -->
+                    <a href="расклейка.html" class="work-btn">
+                        <div class="work-icon">📌</div>
+                        <div class="work-info">
+                            <span class="work-title">Расклейка</span>
+                            <span class="work-desc">Размещение листовок на стендах, досках и в подъездах</span>
+                        </div>
+                        <div class="work-arrow">→</div>
+                    </a>
+
+                    <!-- Кнопка: Раскидка -->
+                    <a href="раскидка.html" class="work-btn">
+                        <div class="work-icon">📬</div>
+                        <div class="work-info">
+                            <span class="work-title">Раскидка</span>
+                            <span class="work-desc">Доставка листовок в почтовые ящики жилых домов</span>
+                        </div>
+                        <div class="work-arrow">→</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Навигация -->
+    <div class="nav-buttons">
+        <button class="btn btn-secondary" id="btn-prev" onclick="navigate('prev')">← Назад</button>
+        <button class="btn btn-primary" id="btn-next" onclick="navigate('next')">Далее →</button>
+    </div>
+    <div class="page-counter" id="page-counter"></div>
+</div>
+
+<script>
+    let currentPage = 0;
+    const totalPages = 2;
+
+    function initDots() {
+        const container = document.getElementById('page-indicator');
+        for (let i = 0; i < totalPages; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            dot.id = 'dot-' + i;
+            container.appendChild(dot);
+        }
+    }
+
+    function navigate(direction) {
+        if (direction === 'next' && currentPage < totalPages - 1) {
+            currentPage++;
+        } else if (direction === 'prev' && currentPage > 0) {
+            currentPage--;
+        } else {
+            return;
+        }
+        updateUI();
+    }
+
+    function updateUI() {
+        for (let i = 0; i < totalPages; i++) {
+            const page = document.getElementById('page-' + i);
+            const dot = document.getElementById('dot-' + i);
+            if (!page || !dot) continue;
+
+            if (i === currentPage) {
+                page.classList.add('active');
+                dot.classList.add('active');
+                dot.classList.remove('completed');
+            } else if (i < currentPage) {
+                page.classList.remove('active');
+                dot.classList.remove('active');
+                dot.classList.add('completed');
+            } else {
+                page.classList.remove('active');
+                dot.classList.remove('active');
+                dot.classList.remove('completed');
+            }
+        }
+
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        btnPrev.disabled = currentPage === 0;
+        btnNext.disabled = currentPage === totalPages - 1;
+
+        // Скрываем кнопку "Далее" на странице с выбором
+        if (currentPage === totalPages - 1) {
+            btnNext.style.visibility = 'hidden';
+            btnPrev.style.flex = '1';
+        } else {
+            btnNext.style.visibility = 'visible';
+        }
+
+        document.getElementById('page-counter').textContent =
+            (currentPage + 1) + ' / ' + totalPages;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Свайпы
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+    document.addEventListener('touchend', e => {
+        const diff = touchStartX - e.changedTouches[0].screenX;
+        if (Math.abs(diff) > 50) {
+            diff > 0 ? navigate('next') : navigate('prev');
+        }
+    }, { passive: true });
+
+    initDots();
+    updateUI();
+</script>
+
+</body>
+</html>

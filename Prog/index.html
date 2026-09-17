@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Обучение: Расклейщик / Раскидчик</title>
+    <style>
+        :root {
+            --primary: #4a6cf7;
+            --primary-dark: #3651d4;
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #1a1a1a;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --radius: 16px;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.6;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app-wrapper {
+            width: 100%;
+            max-width: 600px;
+            min-height: 100vh;
+            background-color: var(--bg);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 20px 20px 16px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .page-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.35);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .dot.active {
+            background-color: white;
+            width: 18px;
+            border-radius: 3px;
+        }
+
+        .dot.completed {
+            background-color: rgba(255, 255, 255, 0.75);
+        }
+
+        .pages-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            padding: 24px 20px 40px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 22px 18px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            font-size: 1.15rem;
+            margin-bottom: 14px;
+            color: var(--primary-dark);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card h2 .emoji {
+            font-size: 1.4rem;
+        }
+
+        .card p {
+            color: var(--text);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .welcome-text {
+            font-size: 1rem;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        .welcome-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .highlight-box {
+            background-color: #f8f9ff;
+            border-left: 4px solid var(--primary);
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+        }
+
+        .store-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 16px 0 8px;
+        }
+
+        .store-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 14px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .store-btn:active { transform: scale(0.97); }
+        .store-btn.apple { background-color: #000; color: white; }
+        .store-btn.apple:hover { background-color: #1a1a1a; }
+        .store-btn.google { background-color: #fff; color: #202124; border-color: #dadce0; }
+        .store-btn.google:hover { background-color: #f8f9fa; border-color: #bdc1c6; }
+
+        .store-btn .store-icon { font-size: 1.8rem; }
+        .store-btn .store-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; }
+        .store-btn .store-text small { font-size: 0.7rem; font-weight: 400; opacity: 0.7; }
+        .store-btn .store-text strong { font-size: 1.05rem; }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .alert-warning { background-color: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+        .alert-info { background-color: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; }
+        .alert-danger { background-color: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+        .alert-success { background-color: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+        .alert .alert-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+
+        .token-block {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+            border: 2px dashed var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin: 16px 0;
+        }
+        .token-block .token-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .token-block .token-value { font-size: 1.6rem; font-weight: 800; color: var(--primary-dark); letter-spacing: 2px; font-family: 'Courier New', monospace; }
+
+        .steps {
+            list-style: none;
+            counter-reset: step-counter;
+            margin-top: 8px;
+        }
+        .steps li {
+            counter-increment: step-counter;
+            margin-bottom: 14px;
+            padding-left: 46px;
+            position: relative;
+            font-size: 0.93rem;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+        }
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* ===== Блок для фото из папки Imeges ===== */
+        .photo-wrapper {
+            margin-top: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #f8fafc;
+            border: 1px solid var(--border);
+        }
+
+        .photo-wrapper img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+        }
+
+        /* Компактный режим для скриншотов телефона (страницы 5 и 6) */
+        .photo-wrapper.compact {
+            display: flex;
+            justify-content: center;
+            background-color: transparent;
+            border: none;
+            overflow: visible;
+            border-radius: 0;
+        }
+
+        .photo-wrapper.compact img {
+            max-height: 380px;
+            width: auto;
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            border: 1px solid var(--border);
+            cursor: zoom-in;
+            transition: transform 0.2s ease;
+        }
+
+        .photo-wrapper.compact img:hover {
+            transform: scale(1.02);
+        }
+
+        .photo-hint {
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* Заглушка, если фото не загрузилось */
+        .photo-fallback {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 16px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            background-color: #f8fafc;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-align: center;
+            min-height: 180px;
+            margin-top: 16px;
+        }
+
+        .photo-fallback .placeholder-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            opacity: 0.6;
+        }
+
+        .photo-fallback .placeholder-text {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #64748b;
+        }
+
+        .photo-fallback .placeholder-hint {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            margin-top: 4px;
+            word-break: break-all;
+        }
+
+        /* ===== Lightbox (полноэкранный просмотр) ===== */
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.94);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            cursor: zoom-out;
+            animation: lbFadeIn 0.2s ease;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        @keyframes lbFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            animation: lbZoom 0.25s ease;
+        }
+
+        @keyframes lbZoom {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            color: white;
+            font-size: 2.2rem;
+            font-weight: 300;
+            line-height: 1;
+            cursor: pointer;
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            user-select: none;
+            transition: background 0.2s ease;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        /* Навигация */
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 16px 20px 24px;
+            background-color: var(--bg);
+            border-top: 1px solid var(--border);
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        .btn-secondary { background-color: #e5e7eb; color: #374151; }
+        .btn-secondary:hover { background-color: #d1d5db; }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .page-counter {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 4px;
+            padding-bottom: 8px;
+        }
+
+        @media (max-width: 380px) {
+            .card { padding: 16px 14px; }
+            .header h1 { font-size: 1rem; }
+            .photo-wrapper.compact img { max-height: 300px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+    <!-- Шапка -->
+    <div class="header">
+        <h1>📋 Обучение сотрудника</h1>
+        <div class="page-indicator" id="page-indicator"></div>
+    </div>
+
+    <!-- Контейнер страниц -->
+    <div class="pages-container">
+
+        <!-- СТРАНИЦА 1 -->
+        <div class="page active" id="page-0">
+            <div class="card" style="text-align: center;">
+                <div class="welcome-icon">👋</div>
+                <h2 style="justify-content: center;">Добро пожаловать!</h2>
+                <p class="welcome-text">
+                    Мы рады приветствовать вас в нашей команде!<br><br>
+                    Ваша роль — <strong>расклейщик / раскидчик листовок</strong> — очень важна.
+                    Именно благодаря вам информация о наших услугах доходит до каждого жителя района.
+                    <br><br>
+                    Эта короткая инструкция поможет вам быстро освоиться и начать работу.
+                    Пожалуйста, внимательно изучите все шаги.
+                </p>
+            </div>
+            <div class="card">
+                <h2><span class="emoji">🗺</span> Что вас ждет?</h2>
+                <p>Обучение состоит из <strong>9 простых шагов</strong>:</p>
+                <ul style="padding-left: 20px; color: var(--muted); font-size: 0.9rem;">
+                    <li>Установка рабочего приложения</li>
+                    <li>Регистрация в системе</li>
+                    <li>Изучение интерфейса</li>
+                    <li>Правила создания фотоотчетов</li>
+                    <li>Завершение задачи</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦА 2 -->
+        <div class="page" id="page-1">
+            <div class="card">
+                <h2><span class="emoji">📱</span> Установка приложения</h2>
+                <p>Для работы необходимо скачать приложение <strong>«ИРБ: Исполнитель»</strong>.</p>
+                <p style="color: var(--muted); font-size: 0.9rem;">Выберите ваш магазин приложений:</p>
+                <div class="store-buttons">
+                    <a href="#" class="store-btn apple" target="_blank">
+                        <span class="store-icon"></span>
+                        <span class="store-text"><small>Загрузите в</small><strong>App Store</strong></span>
+                    </a>
+                    <a href="#" class="store-btn google" target="_blank">
+                        <span class="store-icon"></span>
+                        <span class="store-text"><small>Доступно в</small><strong>Google Play</strong></span>
+                    </a>
+                </div>
+            </div>
+            <div class="alert alert-warning">
+                <span class="alert-icon">⚠️</span>
+                <div><strong>Важно:</strong> Скачивайте приложение <strong>заранее</strong> с <strong>отключенным VPN</strong>.</div>
+            </div>
+            <div class="alert alert-info">
+                <span class="alert-icon">🌍</span>
+                <div>Если приложение не находится в поиске или недоступно в вашей стране — <strong>смените регион на РФ</strong> в настройках аккаунта.</div>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦА 3 -->
+        <div class="page" id="page-2">
+            <div class="card">
+                <h2><span class="emoji">🔑</span> Регистрация</h2>
+                <p>После открытия приложения появится страница с вводом токена.</p>
+                <div class="token-block">
+                    <div class="token-label">Ваш код доступа (токен)</div>
+                    <div class="token-value">XXXX-XXXX</div>
+                </div>
+                <ol class="steps">
+                    <li>Введите код, который вам прислал руководитель.</li>
+                    <li>Нажмите кнопку <strong>«Войти»</strong>.</li>
+                    <li>Дождитесь загрузки профиля.</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦА 4: Фотоотчет -->
+        <div class="page" id="page-3">
+            <div class="card">
+                <h2><span class="emoji">📸</span> Фотоотчет</h2>
+                <p>При размещении листовок нужно делать <strong>фото каждой размещенной листовки</strong>.</p>
+                <p style="color: var(--muted);">Именно по фото идет оплата работы. Если фото не будет, то мы не сможем её оплатить.</p>
+
+                <div class="alert alert-danger" style="margin-top: 12px;">
+                    <span class="alert-icon">⚠️</span>
+                    <div><strong>ВНИМАНИЕ:</strong> Если в одном месте размещается несколько листовок, то делается <strong>несколько фото</strong> (1 листовка = 1 фото).</div>
+                </div>
+
+                <div class="photo-wrapper">
+                    <img src="Imeges/fotootchet.jpg" alt="Фотоотчет"
+                         onerror="this.parentElement.style.display='none'; document.getElementById('fb-4').style.display='flex';">
+                </div>
+                <div class="photo-fallback" id="fb-4">
+                    <div class="placeholder-icon">🖼️</div>
+                    <div class="placeholder-text">Фото не найдено</div>
+                    <div class="placeholder-hint">Положите файл <b>fotootchet.jpg</b> в папку <b>Imeges</b></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦА 5: Интерфейс (компактное фото + fullscreen) -->
+        <div class="page" id="page-4">
+            <div class="card">
+                <h2><span class="emoji">🖥</span> Интерфейс приложения</h2>
+                <p>При входе в свой аккаунт вы видите главную страницу приложения.</p>
+                <ol class="steps">
+                    <li>Для взятия новой задачи перейдите во вкладку <strong>«Назначенные»</strong>.</li>
+                    <li>Нажмите кнопку <strong>«Взять в работу»</strong>.</li>
+                    <li>Откроется сама задача, где нужно будет делать раскидку/расклейку.</li>
+                </ol>
+                <div class="alert alert-info">
+                    <span class="alert-icon">💡</span>
+                    <div>Если задачи нет — обратитесь к своему руководителю.</div>
+                </div>
+
+                <div class="photo-wrapper compact" id="wrap-5">
+                    <img src="Imeges/interfeys.jpg" alt="Интерфейс приложения"
+                         onclick="openLightbox(this.src)"
+                         onerror="this.parentElement.style.display='none'; document.getElementById('fb-5').style.display='flex';">
+                </div>
+                <div class="photo-hint" id="hint-5">👆 Нажмите на фото, чтобы увеличить</div>
+                <div class="photo-fallback" id="fb-5">
+                    <div class="placeholder-icon">🖼️</div>
+                    <div class="placeholder-text">Фото не найдено</div>
+                    <div class="placeholder-hint">Положите файл <b>interfeys.jpg</b> в папку <b>Imeges</b></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦА 6: Задача (компактное фото + fullscreen) -->
+        <div class="page" id="page-5">
+            <div class="card">
+                <h2><span class="emoji">🗺</span> Задача</h2>
+                <p>При входе в задачу у вас откроется основная рабочая страница.</p>
+                <p>В самом верху вы видите <strong>карту</strong>, где красным отмечена область, в которой нужно размещать листовки. Там же вы сможете увидеть своё местоположение и места, где листовки уже были размещены.</p>
+                <div class="alert alert-warning">
+                    <span class="alert-icon">📍</span>
+                    <div><strong>Обязательно включите GPS</strong> в настройках вашего телефона перед началом работы.</div>
+                </div>
+
+                <div class="photo-wrapper compact" id="wrap-6">
+                    <img src="Imeges/zadacha.jpg" alt="Страница задачи"
+                         onclick="openLightbox(this.src)"
+                         onerror="this.parentElement.style.display='none'; document.getElementById('fb-6').style.display='flex';">
+                </div>
+                <div class="photo-hint" id="hint-6">👆 Нажмите на фото, чтобы увеличить</div>
+                <div class="photo-fallback" id="fb-6">
+                    <div class="placeholder-icon">🖼️</div>
+                    <div class="placeholder-text">Фото не найдено</div>
+                    <div class="placeholder-hint">Положите файл <b>zadacha.jpg</b> в папку <b>Imeges</b></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦА 7: Информация о задаче -->
+        <div class="page" id="page-6">
+            <div class="card">
+                <h2><span class="emoji">📊</span> Информация о задаче</h2>
+                <p>Немного ниже на странице задачи находится <strong>основная информация</strong>:</p>
+                <ul style="padding-left: 20px; color: var(--muted); font-size: 0.95rem;">
+                    <li><strong>Тип работы</strong> (расклейка или раскидка)</li>
+                    <li><strong>Название сектора</strong></li>
+                    <li><strong>Количество выполненных листовок</strong> относительно цели</li>
+                </ul>
+                <p style="margin-top: 8px;">Следите за прогрессом, чтобы понимать, сколько ещё осталось сделать.</p>
+
+                <div class="photo-wrapper">
+                    <img src="Imeges/info.jpg" alt="Информация о задаче"
+                         onerror="this.parentElement.style.display='none'; document.getElementById('fb-7').style.display='flex';">
+                </div>
+                <div class="photo-fallback" id="fb-7">
+                    <div class="placeholder-icon">🖼️</div>
+                    <div class="placeholder-text">Фото не найдено</div>
+                    <div class="placeholder-hint">Положите файл <b>info.jpg</b> в папку <b>Imeges</b></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦА 8: Создание фото -->
+        <div class="page" id="page-7">
+            <div class="card">
+                <h2><span class="emoji">📷</span> Создание фото</h2>
+                <p>Далее есть кнопка для создания <strong>нового фото</strong>.</p>
+                <p>Как только вы сделаете снимок, появится возможность:</p>
+                <ul style="padding-left: 20px; color: var(--muted); font-size: 0.95rem;">
+                    <li><strong>Сохранить</strong> фото</li>
+                    <li><strong>Отменить</strong> — если оно получилось некачественным (смазанное или засвеченное)</li>
+                </ul>
+                <div class="alert alert-danger" style="margin-top: 12px;">
+                    <span class="alert-icon">🗑</span>
+                    <div>Если вы всё же подтвердили некачественное фото, его можно <strong>удалить</strong> во вкладке ниже: <strong>«Фото»</strong>.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦА 9: Завершение работы -->
+        <div class="page" id="page-8">
+            <div class="card">
+                <h2><span class="emoji">✅</span> Завершение работы</h2>
+                <p>Если вы полностью сделали задачу, то необходимо <strong>завершить задачу в приложении</strong>.</p>
+                <p>Для этого необходимо:</p>
+                <ol class="steps">
+                    <li>Открыть задачу</li>
+                    <li>Промотать вниз</li>
+                    <li>Нажать кнопку: <strong>«Завершить задачу»</strong></li>
+                </ol>
+            </div>
+
+            <div class="card" style="text-align: center; background-color: #f0fdf4; border-color: #86efac;">
+                <h2 style="color: #166534; justify-content: center;"><span class="emoji">🎉</span> Обучение завершено!</h2>
+                <p style="color: #166534;">Теперь вы готовы к работе. Удачи на маршруте!</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Навигация -->
+    <div class="nav-buttons">
+        <button class="btn btn-secondary" id="btn-prev" onclick="navigate('prev')">← Назад</button>
+        <button class="btn btn-primary" id="btn-next" onclick="navigate('next')">Далее →</button>
+    </div>
+    <div class="page-counter" id="page-counter"></div>
+</div>
+
+<!-- ===== Lightbox ===== -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <div class="lightbox-close" onclick="closeLightbox(event)">×</div>
+    <img id="lightbox-img" src="" alt="Просмотр фото" onclick="event.stopPropagation()">
+</div>
+
+<script>
+    let currentPage = 0;
+    const totalPages = 9;
+
+    function initDots() {
+        const container = document.getElementById('page-indicator');
+        for (let i = 0; i < totalPages; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            dot.id = 'dot-' + i;
+            container.appendChild(dot);
+        }
+    }
+
+    function navigate(direction) {
+        if (direction === 'next' && currentPage < totalPages - 1) {
+            currentPage++;
+        } else if (direction === 'prev' && currentPage > 0) {
+            currentPage--;
+        } else {
+            return;
+        }
+        updateUI();
+    }
+
+    function updateUI() {
+        for (let i = 0; i < totalPages; i++) {
+            const page = document.getElementById('page-' + i);
+            const dot = document.getElementById('dot-' + i);
+            if (!page || !dot) continue;
+
+            if (i === currentPage) {
+                page.classList.add('active');
+                dot.classList.add('active');
+                dot.classList.remove('completed');
+            } else if (i < currentPage) {
+                page.classList.remove('active');
+                dot.classList.remove('active');
+                dot.classList.add('completed');
+            } else {
+                page.classList.remove('active');
+                dot.classList.remove('active');
+                dot.classList.remove('completed');
+            }
+        }
+
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        btnPrev.disabled = currentPage === 0;
+        btnNext.disabled = currentPage === totalPages - 1;
+
+        if (currentPage === totalPages - 1) {
+            btnNext.textContent = '✓ Завершить';
+        } else {
+            btnNext.textContent = 'Далее →';
+        }
+
+        document.getElementById('page-counter').textContent =
+            (currentPage + 1) + ' / ' + totalPages;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Свайпы
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+    document.addEventListener('touchend', e => {
+        // Не свайпаем, если открыт lightbox
+        if (document.getElementById('lightbox').classList.contains('active')) return;
+        const diff = touchStartX - e.changedTouches[0].screenX;
+        if (Math.abs(diff) > 50) {
+            diff > 0 ? navigate('next') : navigate('prev');
+        }
+    }, { passive: true });
+
+    // ===== Lightbox =====
+    function openLightbox(src) {
+        const lb = document.getElementById('lightbox');
+        const img = document.getElementById('lightbox-img');
+        img.src = src;
+        lb.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox(event) {
+        if (event) event.stopPropagation();
+        document.getElementById('lightbox').classList.remove('active');
+        document.getElementById('lightbox-img').src = '';
+        document.body.style.overflow = '';
+    }
+
+    // Закрытие lightbox по ESC
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeLightbox();
+    });
+
+    initDots();
+    updateUI();
+</script>
+
+</body>
+</html>
